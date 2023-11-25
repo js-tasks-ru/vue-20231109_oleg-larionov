@@ -1,27 +1,19 @@
 <!DOCTYPE html>
 <html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MeetupTitle</title>
+  </head>
+  <body>
+    <div id="app">
+      <div>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>MeetupTitle</title>
-</head>
-
-<body>
-  <div id="app">
-    <div>
-
-      <label v-for="meetup in meetupIds" :key="meetup">
-        <input @click="pickMeetup(meetup)" type="radio" name="meetupId" value="{{meetup}}" />
-        {{meetup}}
-      </label>
-
-      <hr />
-
-      <h3>{{this.meetup.title}}</h3>
+        <label v-for="id in meetupIds"> <input v-model="meetupId" type="radio" name="meetupId" :value="id" /> {{ id }} </label>
+        <hr />
+        <h3 v-if="pickedMeetup">{{ pickedMeetup.title }}</h3>
+        
+      </div>
     </div>
-  </div>
-
-  <script type="module" src="./script.js"></script>
-</body>
-
+    <script type="module" src="./script.js"></script>
+  </body>
 </html>
