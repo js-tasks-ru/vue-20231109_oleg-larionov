@@ -5,5 +5,21 @@ export default defineComponent({
 
   // Компонент должен иметь входной параметр и порождать событие
 
-  template: `<button type="button">1</button>`,
+  template: `<button @click="emitIncreasingCount()" type="button">{{count}}</button>`,
+  data() {
+    return{
+      newCount: 0
+    }
+  },
+  methods: {
+    emitIncreasingCount() {
+      this.$emit('update:count', this.count + 1)
+    }
+  },
+  props: {
+    count: {
+      type: Number,
+      default: 0
+    }
+  },
 });
