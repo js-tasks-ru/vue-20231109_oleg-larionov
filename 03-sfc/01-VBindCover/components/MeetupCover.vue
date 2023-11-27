@@ -22,12 +22,12 @@ export default {
 
 <style scoped>
 .meetup-cover {
-  --cover: v-bind('image ? "url(" + image + ")" : "var(--default-cover)"');
+  --image: v-bind('image ? "url(" + image + ")" : "var(--default-cover)"');
   background-size: cover;
   background-position: center;
   background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
     url('https://course-vue.javascript.ru/api/images/2');
-  background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), var(--cover);
+  background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), var(--image);
   display: flex;
   flex-direction: column;
   align-items: center;
