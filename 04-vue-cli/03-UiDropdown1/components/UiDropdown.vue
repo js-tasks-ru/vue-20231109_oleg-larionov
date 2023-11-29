@@ -1,19 +1,33 @@
 <template>
-  <div class="dropdown dropdown_opened">
-    <button type="button" class="dropdown__toggle dropdown__toggle_icon">
-      <UiIcon icon="tv" class="dropdown__icon" />
-      <span>Title</span>
+  <div class="dropdown" :class="{'dropdown_opened': isOpened}" >
+    <button 
+      @click="toggleOptionsList()"
+      type="button" 
+      class="dropdown__toggle"
+      :class="{'dropdown__toggle_icon': hasIcons }"
+    >
+      <UiIcon 
+        v-if="pickedOption?.icon" 
+        :icon="pickedOption?.icon" 
+        class="dropdown__icon" 
+      />
+      <span>{{ pickedOption?.text || title }}</span>
     </button>
 
-    <div class="dropdown__menu" role="listbox">
-      <button class="dropdown__item dropdown__item_icon" role="option" type="button">
-        <UiIcon icon="tv" class="dropdown__icon" />
-        Option 1
+    <div v-show="isOpened" 
+      class="dropdown__menu" 
+      role="listbox">
+
+      <button 
+        v-for="option in options" :key="option" 
+        @click="pickOption(option)"
+        class="dropdown__item"
+        :class="{'dropdown__item_icon': hasIcons }"
+        role="option" type="button">
+        {{ option.text }}
+        <UiIcon v-if="option.icon" :icon="option.icon" class="dropdown__icon" />
       </button>
-      <button class="dropdown__item dropdown__item_icon" role="option" type="button">
-        <UiIcon icon="tv" class="dropdown__icon" />
-        Option 2
-      </button>
+     
     </div>
   </div>
 </template>
@@ -23,8 +37,50 @@ import UiIcon from './UiIcon.vue';
 
 export default {
   name: 'UiDropdown',
+  data() {
+    return {
+      isOpened: false,
+      // pickedOption: null
+    }
+  },
 
   components: { UiIcon },
+  props: {
+    options: {
+      type: Array,
+      requiered: true
+    },
+    modelValue: {
+      type: String,
+      default: ''
+    },
+    title: {
+      type: String,
+      requiered: true
+    }
+  },
+  methods: {
+    toggleOptionsList() {
+      this.isOpened = !this.isOpened;
+    },
+    pickOption(option) {
+      this.$emit('update:modelValue', option.value);
+      // this.pickedOption = option
+      this.closeOptionsList();
+    },
+    closeOptionsList() {
+      this.isOpened = false;
+    }
+  },
+  computed: {
+    hasIcons() {
+      return this.options.some((option) => option.icon);
+    },
+    pickedOption() {
+      return this.options.find((option) => option.value === this.modelValue);
+    }
+  }
+
 };
 </script>
 
