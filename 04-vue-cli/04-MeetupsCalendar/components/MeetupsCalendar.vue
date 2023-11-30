@@ -9,11 +9,11 @@
     </div>
 
     <div class="calendar-view__grid">
-      <div class="calendar-view__cell calendar-view__cell_inactive" tabindex="0">
-        <div class="calendar-view__cell-day">28</div>
+      <div v-for="i in 30" :key="i" class="calendar-view__cell calendar-view__cell_inactive" tabindex="0">
+        <div class="calendar-view__cell-day">{{ i }}</div>
         <div class="calendar-view__cell-content"></div>
       </div>
-      <div class="calendar-view__cell calendar-view__cell_inactive" tabindex="0">
+      <!-- <div class="calendar-view__cell calendar-view__cell_inactive" tabindex="0">
         <div class="calendar-view__cell-day">29</div>
         <div class="calendar-view__cell-content"></div>
       </div>
@@ -37,7 +37,8 @@
         <div class="calendar-view__cell-day">4</div>
         <div class="calendar-view__cell-content"></div>
       </div>
-      <!-- -->
+
+
       <div class="calendar-view__cell" tabindex="0">
         <div class="calendar-view__cell-day">5</div>
         <div class="calendar-view__cell-content"></div>
@@ -66,7 +67,8 @@
         <div class="calendar-view__cell-day">11</div>
         <div class="calendar-view__cell-content"></div>
       </div>
-      <!-- -->
+
+
       <div class="calendar-view__cell" tabindex="0">
         <div class="calendar-view__cell-day">12</div>
         <div class="calendar-view__cell-content">
@@ -98,7 +100,8 @@
         <div class="calendar-view__cell-day">18</div>
         <div class="calendar-view__cell-content"></div>
       </div>
-      <!-- -->
+
+
       <div class="calendar-view__cell" tabindex="0">
         <div class="calendar-view__cell-day">19</div>
         <div class="calendar-view__cell-content"></div>
@@ -127,7 +130,8 @@
         <div class="calendar-view__cell-day">25</div>
         <div class="calendar-view__cell-content"></div>
       </div>
-      <!-- -->
+
+
       <div class="calendar-view__cell" tabindex="0">
         <div class="calendar-view__cell-day">26</div>
         <div class="calendar-view__cell-content"></div>
@@ -155,7 +159,7 @@
       <div class="calendar-view__cell calendar-view__cell_inactive" tabindex="0">
         <div class="calendar-view__cell-day">1</div>
         <div class="calendar-view__cell-content"></div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -163,19 +167,91 @@
 <script>
 export default {
   name: 'MeetupsCalendar',
-
+  mounted() {
+    // console.log(this.currentYear, this.currentMonth)
+    const first = this.getFirstDayOfMonthNumber(this.currentYear, this.currentMonth)
+    const last= this.getLastDayOfMonthNumber(this.currentYear, this.currentMonth)
+    console.log(first)
+    console.log(last)
+    console.log(this.returnPreviousMonthLastDays(this.currentYear, this.currentMonth, first))
+    console.log(this.returnNextMonthLastDays(this.currentYear, this.currentMonth, last))
+  },
+  data() {
+    return {
+      currentMonth: new Date().getMonth() + 1,
+      currentYear: new Date().getFullYear(),
+    };
+  },
   props: {
     meetups: {
       type: Array,
       required: true,
     },
   },
+  methods: {
+    getFirstDayOfMonthNumber(year, month) {
+      return (new Date(year, month, 1, 0).getDay() + 3) % 7 
+    },
+    getLastDayOfMonthNumber(year, month) {
+      return (new Date(year, month + 1, 0).getDay() + 3) % 7;
+    },
+    returnPreviousMonthLastDays(currentYear, currentMonth, firstDayNumberOfCurrentMonth) {
+      const leftDays = []
+      let yearToCalculate = null;
+      let monthToCalculate = null;
+      currentMonth === 1 ? yearToCalculate = currentYear - 1 : yearToCalculate = currentYear; 
+      currentMonth === 1 ? monthToCalculate = 12 : monthToCalculate = currentMonth - 1; 
+      const lastDayOfPreviousMonth = this.getLastDayOfMonthNumber(yearToCalculate, monthToCalculate);
+
+      let daysCounter = lastDayOfPreviousMonth;
+      for(i in firstDayNumberOfCurrentMonth - 1) {
+        leftDays.push(daysCounter);
+        daysCounter--;
+      }
+      return leftDays
+    },
+    returnNextMonthLastDays(currentYear, currentMonth, lastDayNumberOfCurrentMonth) {
+      const leftDays = []
+      let yearToCalculate = null;
+      let monthToCalculate = null;
+      currentMonth === 12 ? yearToCalculate = currentYear + 1 : yearToCalculate = currentYear; 
+      currentMonth === 12 ? monthToCalculate = 1 : monthToCalculate = currentMonth + 1; 
+      const firstDayOfNextMonth = this.getFirstDayOfMonthNumber(yearToCalculate, monthToCalculate);
+
+      const daysLeft = 7 - lastDayNumberOfCurrentMonth;
+      let daysCounter = firstDayOfNextMonth;
+      for(i in daysLeft) {
+        leftDays.push(i);
+      }
+      return leftDays
+    }
+  },
+  computed: {
+
+    daysForDisplaying() {
+      const currentDate = new Date(this.currentYear, this.currentMonth, 0)
+    },
+
+
+    // currentMonth() {
+    //   return new Date().getMonth()
+    // },
+    // currentYear() {
+    //   return new Date().getFullYear()
+    // },
+    firstDayOfCurrentMonth() {
+      return new Date(this.currentYear, this.currentMonth, 1, 0)
+    },
+    belongsToCurrentMonth() {
+
+    },
+
+  }
 };
 </script>
 
 <style scoped>
-.calendar-view {
-}
+.calendar-view {}
 
 .calendar-view__controls {
   text-align: center;
