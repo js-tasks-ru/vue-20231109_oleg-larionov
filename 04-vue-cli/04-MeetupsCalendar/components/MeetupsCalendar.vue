@@ -2,16 +2,26 @@
   <div class="calendar-view">
     <div class="calendar-view__controls">
       <div class="calendar-view__controls-inner">
-        <button class="calendar-view__control-left" type="button" aria-label="Previous month"></button>
-        <div class="calendar-view__date">Декабрь 2022 г.</div>
-        <button class="calendar-view__control-right" type="button" aria-label="Next month"></button>
+        <button @click="goPreviousMonth()" class="calendar-view__control-left" type="button"
+          aria-label="Previous month"></button>
+        <div class="calendar-view__date">{{ currentMonthRus() }}</div>
+        <button @click="goNextMonth()" class="calendar-view__control-right" type="button"
+          aria-label="Next month"></button>
       </div>
     </div>
 
     <div class="calendar-view__grid">
-      <div v-for="i in 30" :key="i" class="calendar-view__cell calendar-view__cell_inactive" tabindex="0">
+      <!-- <div v-for="i in 30" :key="i" class="calendar-view__cell calendar-view__cell_inactive" tabindex="0">
         <div class="calendar-view__cell-day">{{ i }}</div>
         <div class="calendar-view__cell-content"></div>
+      </div> -->
+      <div v-for="(cell) in finalCells" :key="cell" class="calendar-view__cell"
+        :class="{ 'calendar-view__cell_inactive': !cell.isActive }" tabindex="0">
+        <div class="calendar-view__cell-day">{{ cell.day }}</div>
+
+        <!-- <div v-for="meetup in pageDay.meetups" :key="meetup" class="calendar-view__cell-content">
+          <a :href="`/meetups/${meetup.id}`" class="calendar-event">{{meetup.title}}</a>
+        </div> -->
       </div>
       <!-- <div class="calendar-view__cell calendar-view__cell_inactive" tabindex="0">
         <div class="calendar-view__cell-day">29</div>
@@ -165,16 +175,11 @@
 </template>
 
 <script>
+
 export default {
   name: 'MeetupsCalendar',
   mounted() {
-    // console.log(this.currentYear, this.currentMonth)
-    const first = this.getFirstDayOfMonthNumber(this.currentYear, this.currentMonth)
-    const last= this.getLastDayOfMonthNumber(this.currentYear, this.currentMonth)
-    console.log(first)
-    console.log(last)
-    console.log(this.returnPreviousMonthLastDays(this.currentYear, this.currentMonth, first))
-    console.log(this.returnNextMonthLastDays(this.currentYear, this.currentMonth, last))
+
   },
   data() {
     return {
@@ -190,43 +195,106 @@ export default {
   },
   methods: {
     getFirstDayOfMonthNumber(year, month) {
-      return (new Date(year, month, 1, 0).getDay() + 3) % 7 
+      const date = new Date(year, month - 1, 1, 0).getDay();
+      return date === 0 ? 7 : date;
     },
     getLastDayOfMonthNumber(year, month) {
-      return (new Date(year, month + 1, 0).getDay() + 3) % 7;
+      const date = new Date(year, month - 1 + 1, 0).getDay();
+      return date === 0 ? 7 : date;
     },
     returnPreviousMonthLastDays(currentYear, currentMonth, firstDayNumberOfCurrentMonth) {
-      const leftDays = []
-      let yearToCalculate = null;
-      let monthToCalculate = null;
-      currentMonth === 1 ? yearToCalculate = currentYear - 1 : yearToCalculate = currentYear; 
-      currentMonth === 1 ? monthToCalculate = 12 : monthToCalculate = currentMonth - 1; 
-      const lastDayOfPreviousMonth = this.getLastDayOfMonthNumber(yearToCalculate, monthToCalculate);
+      const leftDays = [];
+      let newMonth = null;
+      let newYear = null;
 
-      let daysCounter = lastDayOfPreviousMonth;
-      for(i in firstDayNumberOfCurrentMonth - 1) {
-        leftDays.push(daysCounter);
-        daysCounter--;
+      let daysLeft = firstDayNumberOfCurrentMonth - 1 // сколько дней предывущего месяца надо добавить
+      currentMonth === 1 ? newMonth = 12 : newMonth = currentMonth - 1
+      currentMonth === 1 ? newYear = currentYear - 1 : newYear = currentYear
+
+      let lastDayOfPreviousMonth = new Date(newYear, newMonth, 0).getDate() // последний день предыдущего месяца
+      while (daysLeft !== 0) {
+        leftDays.push(
+          {
+            day: lastDayOfPreviousMonth,
+            isActive: false
+          }
+        );
+        lastDayOfPreviousMonth--;
+        daysLeft--
       }
-      return leftDays
+      return leftDays.reverse()
     },
     returnNextMonthLastDays(currentYear, currentMonth, lastDayNumberOfCurrentMonth) {
       const leftDays = []
-      let yearToCalculate = null;
-      let monthToCalculate = null;
-      currentMonth === 12 ? yearToCalculate = currentYear + 1 : yearToCalculate = currentYear; 
-      currentMonth === 12 ? monthToCalculate = 1 : monthToCalculate = currentMonth + 1; 
-      const firstDayOfNextMonth = this.getFirstDayOfMonthNumber(yearToCalculate, monthToCalculate);
+      let newMonth = null;
+      let newYear = null
+
+      currentMonth === 12 ? newYear = currentYear + 1 : newYear = currentYear;
+      currentMonth === 12 ? newMonth = 1 : newMonth = currentMonth + 1;
 
       const daysLeft = 7 - lastDayNumberOfCurrentMonth;
-      let daysCounter = firstDayOfNextMonth;
-      for(i in daysLeft) {
-        leftDays.push(i);
+      if (daysLeft != 0) {
+        for (let i = 1; i <= daysLeft; i++) {
+          leftDays.push(
+            {
+              day: i,
+              isActive: false
+            }
+          )
+        }
       }
       return leftDays
-    }
+    },
+    goPreviousMonth() {
+      if (this.currentMonth === 1) {
+        this.currentYear = this.currentYear - 1
+        this.currentMonth = 12
+      }
+      else {
+        this.currentMonth = this.currentMonth - 1
+      }
+    },
+    goNextMonth() {
+      if (this.currentMonth === 12) {
+        this.currentYear = this.currentYear + 1
+        this.currentMonth = 1
+      }
+      else {
+        this.currentMonth = this.currentMonth + 1
+      }
+
+    },
+    currentMonthRus() {
+      const year = this.currentYear
+      const month = this.currentMonth - 1
+      return new Date(year, month).toLocaleDateString(navigator.language, {
+        year: "numeric",
+        month: "long",
+      })
+    },
+
   },
   computed: {
+
+
+    finalCells() {
+      const currentMonth = [];
+      const thisMonthDaysQuantity = new Date(this.currentYear, this.currentMonth, 0).getDate()
+      for (let i = 1; i <= thisMonthDaysQuantity; i++) {
+        currentMonth.push(
+          {
+            day: i,
+            isActive: true
+          }
+        )
+      }
+      const first = this.getFirstDayOfMonthNumber(this.currentYear, this.currentMonth)
+      const last = this.getLastDayOfMonthNumber(this.currentYear, this.currentMonth)
+      const previousMonth = this.returnPreviousMonthLastDays(this.currentYear, this.currentMonth, first)
+      const nextMonth = this.returnNextMonthLastDays(this.currentYear, this.currentMonth, last)
+      const final = previousMonth.concat(currentMonth, nextMonth)
+      return final
+    },
 
     daysForDisplaying() {
       const currentDate = new Date(this.currentYear, this.currentMonth, 0)
