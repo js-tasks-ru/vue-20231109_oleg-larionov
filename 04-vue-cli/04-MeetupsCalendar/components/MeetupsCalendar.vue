@@ -134,7 +134,7 @@ export default {
     enrichDays(cells) {
       for (let i = 0; i < cells.length; i++) {
         this.meetups.forEach((meetup) => {
-          if (meetup.date > cells[i].timestamp && meetup.date < cells[i + 1]?.timestamp) {
+          if (meetup.date >= cells[i].timestamp && meetup.date <= cells[i + 1]?.timestamp) {
             cells[i].meetups.push(meetup)
           }
         })
