@@ -1,7 +1,7 @@
 <template>
-    <div class="toast toast_success" :class="{ ['toast toast_error']: config.type === 'error' }">
-        <UiIcon class="toast__icon" :icon="config.icon" />
-        <span>{{ config.message }}</span>
+    <div class="toast" :class="style">
+        <UiIcon class="toast__icon" :icon="icon" />
+        <span>{{ message }}</span>
     </div>
 </template>
   
@@ -12,10 +12,14 @@ export default {
     name: 'UiToast',
     components: { UiIcon },
     props: {
-        config: {
-            type: Object,
+        type: {
+            type: String,
             requiered: true
-        }
+        },
+        message: {
+            type: String,
+            requiered: true
+        },
     },
     mounted() {
         this.setLifeSpan();
@@ -27,9 +31,18 @@ export default {
             }, 5000);
         },
         emitExpiration() {
-            this.$emit("expired", this.config.index);
+            this.$emit("expired");
         }
     },
+    emits: ['expired'],
+    computed: {
+        icon() {
+            return this.type ==='success' ? 'check-circle' : 'alert-circle'
+        },
+        style() {
+            return this.type === 'success' ? 'toast_success' : 'toast_error'
+        }
+    }
 };
 </script>
 

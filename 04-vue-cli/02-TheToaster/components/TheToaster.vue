@@ -1,6 +1,10 @@
 <template>
   <div class="toasts">
-    <UiToast v-for="toastConfig in toasts" :key="toastConfig" :config="toastConfig" @expired="handleDeletion" />
+    <UiToast 
+      v-for="toastConfig in toasts" :key="toastConfig" 
+      :type="toastConfig.type" 
+      :message="toastConfig.message" 
+      @expired="handleDeletion(toastConfig.index)" />
     <!-- <div v-for="toast in toasts" :key="toast" class="toast toast_success" :class="{['toast toast_error']: toast.type === 'error'}">
       <UiIcon class="toast__icon" :icon="toast.icon" />
       <span>{{ toast.message }}</span>
@@ -28,7 +32,8 @@ export default {
   data() {
     return {
       state: '',
-      toasts: []
+      toasts: [],
+      toastId: 0
     }
   },
   methods: {
@@ -38,7 +43,7 @@ export default {
           message: message,
           type: 'success',
           icon: 'check-circle',
-          index: this.toasts.length
+          index: this.toastId++
         }
       );
 
@@ -49,7 +54,7 @@ export default {
           message: message,
           type: 'error',
           icon: 'alert-circle',
-          index: this.toasts.length
+          index: this.toastId++
         }
       );
     },
