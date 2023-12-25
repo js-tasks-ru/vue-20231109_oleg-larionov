@@ -1,37 +1,50 @@
 <template>
   <fieldset class="agenda-item-form">
-    <button type="button" class="agenda-item-form__remove-button">
-      <UiIcon icon="trash" />
+    <button 
+      @click="$emit('remove')" 
+      type="button" 
+      class="agenda-item-form__remove-button">
+        <UiIcon icon="trash" 
+    />
     </button>
 
     <UiFormGroup>
-      <UiDropdown title="Тип" :options="$options.agendaItemTypeOptions" name="type" />
+      <UiDropdown v-model="internalAgendaItem.type" title="Тип" :options="$options.agendaItemTypeOptions" name="type" />
     </UiFormGroup>
 
     <div class="agenda-item-form__row">
       <div class="agenda-item-form__col">
         <UiFormGroup label="Начало">
-          <UiInput type="time" placeholder="00:00" name="startsAt" />
+          <UiInput v-model="internalAgendaItem.startsAt" 
+            type="time" 
+            placeholder="00:00" 
+            name="startsAt" 
+          />
         </UiFormGroup>
       </div>
       <div class="agenda-item-form__col">
         <UiFormGroup label="Окончание">
-          <UiInput type="time" placeholder="00:00" name="endsAt" />
+          <UiInput 
+            v-model="internalAgendaItem.endsAt" 
+            type="time" 
+            placeholder="00:00" 
+            name="endsAt" 
+          />
         </UiFormGroup>
       </div>
     </div>
 
-    <UiFormGroup label="Тема">
-      <UiInput name="title" />
+    <UiFormGroup :label="titleLabel">
+      <UiInput v-model="internalAgendaItem.title" name="title" />
     </UiFormGroup>
-    <UiFormGroup label="Докладчик">
-      <UiInput name="speaker" />
+    <UiFormGroup v-if="isVisible.speaker" label="Докладчик">
+      <UiInput v-model="internalAgendaItem.speaker" name="speaker" />
     </UiFormGroup>
-    <UiFormGroup label="Описание">
-      <UiInput multiline name="description" />
+    <UiFormGroup v-if="isVisible.description" label="Описание">
+      <UiInput v-model="internalAgendaItem.description" multiline name="description" />
     </UiFormGroup>
-    <UiFormGroup label="Язык">
-      <UiDropdown title="Язык" :options="$options.talkLanguageOptions" name="language" />
+    <UiFormGroup v-if="isVisible.language" label="Язык">
+      <UiDropdown v-model="internalAgendaItem.language"  title="Язык" :options="$options.talkLanguageOptions" name="language" />
     </UiFormGroup>
   </fieldset>
 </template>
@@ -77,20 +90,113 @@ const talkLanguageOptions = [
 ];
 
 export default {
-  name: 'MeetupAgendaItemForm',
+    name: 'MeetupAgendaItemForm',
 
-  agendaItemTypeOptions,
-  talkLanguageOptions,
+    agendaItemTypeOptions,
+    talkLanguageOptions,
 
-  components: { UiIcon, UiFormGroup, UiInput, UiDropdown },
-
-  props: {
-    agendaItem: {
-      type: Object,
-      required: true,
+    components: {
+      UiIcon,
+      UiFormGroup,
+      UiInput,
+      UiDropdown
     },
-  },
-};
+
+    data() {
+      return {
+        internalAgendaItem: {
+          startsAt: '00:00',
+          endsAt: '00:00',
+          title: '',
+          speaker: '',
+          description: '',
+          language: null,
+          type: 'other',
+          ...this.agendaItem,
+        },
+
+        duration: this.calculateDuration(
+          this.agendaItem.startsAt,
+          this.agendaItem.endsAt
+        ),
+      };
+    },
+    
+    props: {
+      agendaItem: {
+        type: Object,
+        required: true,
+      },
+    },
+    
+    emits: ['remove', 'update:agendaItem'],
+
+    watch: {
+      internalAgendaItem: {
+        deep: true,
+        handler() {
+          this.$emit('update:agendaItem', {
+            ...this.agendaItem,
+            ...this.internalAgendaItem,
+          });
+        },
+      },
+
+      'internalAgendaItem.startsAt'() {
+        let startToCalculate = this.parseTimeString(this.internalAgendaItem.startsAt);
+        let endToCalculate = startToCalculate + this.duration;
+        this.internalAgendaItem.endsAt = this.formatTimeString(endToCalculate);
+      },
+      
+      'internalAgendaItem.endsAt'() {
+        this.duration = this.calculateDuration(
+          this.internalAgendaItem.startsAt,
+          this.internalAgendaItem.endsAt
+          );
+        },
+      },
+      
+      methods: {
+        parseTimeString(time) {
+        let [hours, minutes] = time.split(':');
+        hours = parseInt(hours) * 60;
+        minutes = parseInt(minutes);
+        return hours + minutes;
+      },
+      
+      formatTimeString(time) {
+        let hours = Math.floor(time / 60) % 24;
+        let minutes = time % 60;
+        hours = hours > 9 ? hours : '0' + hours;
+        minutes = minutes > 9 ? minutes : '0' + minutes;
+        return `${hours}:${minutes}`;
+      },
+      
+      calculateDuration(start, end) {
+        const startToCalculate = typeof start === 'number' ? start : this.parseTimeString(start);
+        const endToCalculate = typeof end === 'number' ? end : this.parseTimeString(end);
+        return (1440 + endToCalculate - startToCalculate) % 1440;
+      },
+    },
+    computed: {
+      isVisible() {
+        const type = this.internalAgendaItem.type;
+        return {
+          speaker: ['talk'].includes(type),
+          language: ['talk'].includes(type),
+          description: ['talk', 'other'].includes(type),
+        };
+      },
+  
+      titleLabel() {
+        switch (this.internalAgendaItem.type) {
+          case 'talk': return 'Тема';
+          case 'other': return 'Заголовок';
+          default: return 'Нестандартный текст (необязательно)';
+        }
+      },
+    },
+  };
 </script>
 
 <style scoped>
@@ -123,7 +229,7 @@ export default {
   flex-direction: column;
 }
 
-.agenda-item-form__col + .agenda-item-form__col {
+.agenda-item-form__col+.agenda-item-form__col {
   margin-top: 16px;
 }
 
@@ -152,7 +258,7 @@ export default {
     padding: 0 12px;
   }
 
-  .agenda-item-form__col + .agenda-item-form__col {
+  .agenda-item-form__col+.agenda-item-form__col {
     margin-top: 0;
   }
 

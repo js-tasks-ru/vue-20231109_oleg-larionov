@@ -1,31 +1,28 @@
 <template>
   <fieldset class="agenda-item-form">
-    <button type="button" class="agenda-item-form__remove-button">
+    <button @click="$emit('remove')" type="button" class="agenda-item-form__remove-button">
       <UiIcon icon="trash" />
     </button>
 
     <UiFormGroup>
-      <UiDropdown title="Тип" :options="$options.agendaItemTypeOptions" name="type" />
+      <UiDropdown v-model="internalAgendaItem.type" title="Тип" :options="$options.agendaItemTypeOptions" name="type" />
     </UiFormGroup>
 
     <div class="agenda-item-form__row">
       <div class="agenda-item-form__col">
         <UiFormGroup label="Начало">
-          <UiInput type="time" placeholder="00:00" name="startsAt" />
+          <UiInput v-model="internalAgendaItem.startsAt" type="time" placeholder="00:00" name="startsAt" />
         </UiFormGroup>
       </div>
       <div class="agenda-item-form__col">
         <UiFormGroup label="Окончание">
-          <UiInput type="time" placeholder="00:00" name="endsAt" />
+          <UiInput v-model="internalAgendaItem.endsAt" type="time" placeholder="00:00" name="endsAt" />
         </UiFormGroup>
       </div>
     </div>
 
-    <UiFormGroup label="Заголовок">
-      <UiInput name="title" />
-    </UiFormGroup>
-    <UiFormGroup label="Описание">
-      <UiInput multiline name="description" />
+    <UiFormGroup v-for="(prop, name) in $options.agendaItemFormSchemas[internalAgendaItem.type]" :key="name" :label="prop.label">
+      <component :is="prop.component" v-model="internalAgendaItem[name]" v-bind="prop.props" />
     </UiFormGroup>
   </fieldset>
 </template>
@@ -159,12 +156,80 @@ export default {
   agendaItemTypeOptions,
   agendaItemFormSchemas,
 
+  data() {
+    return {
+      internalAgendaItem: {
+        startsAt: '00:00',
+        endsAt: '00:00',
+        title: '',
+        speaker: '',
+        description: '',
+        language: null,
+        type: 'other',
+        ...this.agendaItem,
+      },
+      duration: this.calculateDuration(
+        this.agendaItem.startsAt,
+        this.agendaItem.endsAt
+      ),
+    }
+  },
   props: {
     agendaItem: {
       type: Object,
       required: true,
     },
   },
+  emits: ['remove', 'update:agendaItem'],
+  
+  watch: {
+      internalAgendaItem: {
+        deep: true,
+        handler() {
+          this.$emit('update:agendaItem', {
+            ...this.agendaItem,
+            ...this.internalAgendaItem,
+          });
+        },
+      },
+
+      'internalAgendaItem.startsAt'() {
+        let startToCalculate = this.parseTimeString(this.internalAgendaItem.startsAt);
+        let endToCalculate = startToCalculate + this.duration;
+        this.internalAgendaItem.endsAt = this.formatTimeString(endToCalculate);
+      },
+      
+      'internalAgendaItem.endsAt'() {
+        this.duration = this.calculateDuration(
+          this.internalAgendaItem.startsAt,
+          this.internalAgendaItem.endsAt
+          );
+        },
+      },
+      
+      methods: {
+        parseTimeString(time) {
+        let [hours, minutes] = time.split(':');
+        hours = parseInt(hours) * 60;
+        minutes = parseInt(minutes);
+        return hours + minutes;
+      },
+      
+      formatTimeString(time) {
+        let hours = Math.floor(time / 60) % 24;
+        let minutes = time % 60;
+        hours = hours > 9 ? hours : '0' + hours;
+        minutes = minutes > 9 ? minutes : '0' + minutes;
+        return `${hours}:${minutes}`;
+      },
+      
+      calculateDuration(start, end) {
+        const startToCalculate = typeof start === 'number' ? start : this.parseTimeString(start);
+        const endToCalculate = typeof end === 'number' ? end : this.parseTimeString(end);
+        return (1440 + endToCalculate - startToCalculate) % 1440;
+      },
+    },
+
 };
 </script>
 
@@ -198,7 +263,7 @@ export default {
   flex-direction: column;
 }
 
-.agenda-item-form__col + .agenda-item-form__col {
+.agenda-item-form__col+.agenda-item-form__col {
   margin-top: 16px;
 }
 
@@ -227,7 +292,7 @@ export default {
     padding: 0 12px;
   }
 
-  .agenda-item-form__col + .agenda-item-form__col {
+  .agenda-item-form__col+.agenda-item-form__col {
     margin-top: 0;
   }
 
