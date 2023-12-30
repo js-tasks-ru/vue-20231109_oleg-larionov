@@ -4,19 +4,19 @@
       <fieldset class="meetup-form__section">
 
         <UiFormGroup label="Название">
-          <UiInput v-model="title" name="title" />
+          <UiInput v-model="localMeetup.title" name="title" />
         </UiFormGroup>
 
         <UiFormGroup label="Дата">
-          <UiInputDate v-model="date" type="date" name="date" />
+          <UiInputDate v-model="localMeetup.date" type="date" name="date" />
         </UiFormGroup>
 
         <UiFormGroup label="Место">
-          <UiInput v-model="place" name="place" />
+          <UiInput v-model="localMeetup.place" name="place" />
         </UiFormGroup>
 
         <UiFormGroup label="Описание">
-          <UiInput v-model="description" multiline rows="3" name="description" />
+          <UiInput v-model="localMeetup.description" multiline rows="3" name="description" />
         </UiFormGroup>
 
         <UiFormGroup label="Изображение">
@@ -27,7 +27,7 @@
 
       <h3 class="meetup-form__agenda-title">Программа</h3>
 
-      <meetup-agenda-item-form v-for="item, index in agenda" :key="item.id" v-model:agendaItem="agenda[index]"
+      <meetup-agenda-item-form v-for="item, index in localMeetup.agenda" :key="item.id" v-model:agendaItem="localMeetup.agenda[index]"
         @remove="() => removeAgendaItem(item)" class="meetup-form__agenda-item" />
 
 
@@ -43,7 +43,7 @@
         <!-- data-test атрибуты используются для поиска нужного элемента в тестах, не удаляйте их -->
         <ui-button @click="$emit('cancel')" variant="secondary" block class="meetup-form__aside-button"
           data-test="cancel">Отмена</ui-button>
-        <ui-button @click="$emit('submit')" variant="primary" block class="meetup-form__aside-button" data-test="submit"
+        <ui-button variant="primary" block class="meetup-form__aside-button" data-test="submit"
           type="submit">{{ submitText }}
         </ui-button>
       </div>
@@ -63,12 +63,14 @@ export default {
   name: 'MeetupForm',
   data() {
     return {
-      agenda: this.meetup?.agenda?.map(meetup => meetup) || [],
-      title: this.meetup.title ,
-      date: this.meetup.date ,
-      place: this.meetup.place ,
-      image: this.meetup.image ,
-      description: this.meetup.description,
+      localMeetup: {
+        agenda: this.meetup?.agenda?.map(meetup => meetup) || [],
+        title: this.meetup.title ,
+        date: this.meetup.date ,
+        place: this.meetup.place ,
+        image: this.meetup.image ,
+        description: this.meetup.description,
+      },
     }
   },
   components: {
@@ -96,43 +98,44 @@ export default {
   methods: {
     addAgendaItem() {
       let agendaItem = createAgendaItem();
-      let agendaSize = this.agenda.length;
-      if (this.agenda[agendaSize - 1]) {
-        agendaItem.startsAt = this.agenda[agendaSize - 1].endsAt;
+      let agendaSize = this.localMeetup.agenda.length;
+      if (this.localMeetup.agenda[agendaSize - 1]) {
+        agendaItem.startsAt = this.localMeetup.agenda[agendaSize - 1].endsAt;
       }
-      this.agenda.push(agendaItem);
+      this.localMeetup.agenda.push(agendaItem);
     },
 
     updateAgendaItem(item) {
-      let old = this.agenda.find(a => a.id === item.id);
-      if (this.agenda.includes(old)) {
-        this.agenda.splice(this.agenda.indexOf(old), 1, item);
+      let old = this.localMeetup.agenda.find(a => a.id === item.id);
+      if (this.localMeetup.agenda.includes(old)) {
+        this.localMeetup.agenda.splice(this.localMeetup.agenda.indexOf(old), 1, item);
       }
     },
 
     removeAgendaItem(item) {
-      if (this.agenda.includes(item)) {
-        this.agenda.splice(this.agenda.indexOf(item), 1)
+      if (this.localMeetup.agenda.includes(item)) {
+        this.localMeetup.agenda.splice(this.localMeetup.agenda.indexOf(item), 1)
       }
     },
 
-    submit() {
+    submit(event) {
+      event.preventDefault();
       this.$emit('submit',
         {
           ...this.meetup,
-          ...this.$data,
-          agenda: this.agenda.map(arr => ({ ...arr })),
+          ...this.localMeetup,
+          agenda: this.localMeetup.agenda.map(arr => ({ ...arr })),
         }
       );
     },
 
     selectImage(file) {
-      this.image = '';
+      this.localMeetup.image = '';
       this.imageToUpload = file;
     },
 
     removeImage() {
-      this.image = '';
+      this.localMeetup.image = '';
       this.imageToUpload = null;
     },
   }
