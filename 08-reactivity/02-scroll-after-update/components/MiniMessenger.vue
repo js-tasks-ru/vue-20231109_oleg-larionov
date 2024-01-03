@@ -1,6 +1,6 @@
 <template>
   <main class="mini-messenger">
-    <ul class="messages">
+    <ul ref="messagesLayout" class="messages">
       <li v-for="message in messages" :key="message.id" class="message">
         {{ message.text }}
       </li>
@@ -44,6 +44,15 @@ export default {
       this.newMessage = '';
     },
   },
+  watch: {
+    'messages.length': {
+      flush: 'post',
+      handler() {
+        const messagesLayout = this.$refs.messagesLayout;
+        messagesLayout.scrollTo(0, messagesLayout.scrollHeight);
+      }
+    }
+  }
 };
 </script>
 
@@ -57,7 +66,7 @@ export default {
 .messages {
   padding: 0 1rem;
   margin: 0;
-  list-style: none;
+  messagesLayout-style: none;
   height: 300px;
   overflow: auto;
 }
