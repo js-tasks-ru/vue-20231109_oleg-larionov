@@ -46,10 +46,15 @@ export default {
   },
   watch: {
     'messages.length': {
-      flush: 'post',
-      handler() {
-        const messagesLayout = this.$refs.messagesLayout;
-        messagesLayout.scrollTo(0, messagesLayout.scrollHeight);
+      handler: function (newLength, oldLength) {
+        if (newLength > oldLength) {
+          this.$nextTick(function () {
+            const messagesLayout = this.$refs.messagesLayout;
+            messagesLayout.scrollTo(0, messagesLayout.scrollHeight);
+
+          })
+        }
+
       }
     }
   }
@@ -66,7 +71,7 @@ export default {
 .messages {
   padding: 0 1rem;
   margin: 0;
-  messagesLayout-style: none;
+  list-style: none;
   height: 300px;
   overflow: auto;
 }
