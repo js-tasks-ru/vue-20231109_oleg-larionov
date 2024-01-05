@@ -1,6 +1,6 @@
 <template>
   <main class="mini-messenger">
-    <ul class="messages">
+    <ul ref="messagesLayout" class="messages">
       <li v-for="message in messages" :key="message.id" class="message">
         {{ message.text }}
       </li>
@@ -44,6 +44,20 @@ export default {
       this.newMessage = '';
     },
   },
+  watch: {
+    'messages.length': {
+      handler: function (newLength, oldLength) {
+        if (newLength > oldLength) {
+          this.$nextTick(function () {
+            const messagesLayout = this.$refs.messagesLayout;
+            messagesLayout.scrollTo(0, messagesLayout.scrollHeight);
+
+          })
+        }
+
+      }
+    }
+  }
 };
 </script>
 

@@ -17,7 +17,7 @@ export default {
 
   data() {
     return {
-      sensors: null,
+      sensors: {},
     };
   },
 
@@ -42,7 +42,20 @@ export default {
     },
 
     setData(sensors) {
-      this.sensors = sensors;
+      let localSensor = null;
+      let externalSensor = null;
+
+      for (let id in sensors) {
+        localSensor = this.sensors[id];
+        externalSensor = sensors[id];
+
+        if (localSensor) {
+          localSensor.value = externalSensor.value;
+        }
+        else {
+          this.sensors[id] = { ...externalSensor };
+        }
+      }
     },
   },
 };
