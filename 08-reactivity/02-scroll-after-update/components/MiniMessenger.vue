@@ -42,22 +42,18 @@ export default {
         text: this.newMessage,
       });
       this.newMessage = '';
+
+      this.scrollDownOnSending();
     },
-  },
-  watch: {
-    'messages.length': {
-      handler: function (newLength, oldLength) {
-        if (newLength > oldLength) {
-          this.$nextTick(function () {
-            const messagesLayout = this.$refs.messagesLayout;
-            messagesLayout.scrollTo(0, messagesLayout.scrollHeight);
+    scrollDownOnSending() {
+      this.$nextTick(function () {
+        const messagesLayout = this.$refs.messagesLayout;
+        messagesLayout.scrollTo(0, messagesLayout.scrollHeight);
 
-          })
-        }
-
-      }
+      })
     }
-  }
+  },
+  
 };
 </script>
 
