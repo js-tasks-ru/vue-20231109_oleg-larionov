@@ -1,7 +1,7 @@
 <template>
-  <UiCalendarView>
-    <UiCalendarEvent v-if="meetups[0]" tag="a" :href="`/meetups/${meetups[0].id}`">
-      {{ meetups[0].title }}
+  <UiCalendarView v-slot="{isoDate}">
+    <UiCalendarEvent v-for="meetup in computedMeetups[isoDate]" :key="meetup.id" tag="a" :href="`/meetups/${meetup.id}`">
+      {{ meetup.title }}
     </UiCalendarEvent>
   </UiCalendarView>
 </template>
@@ -16,6 +16,27 @@ export default {
   components: {
     UiCalendarEvent,
     UiCalendarView,
+  },
+  computed: {
+    computedMeetups() {
+      const finalMeetups = {};
+      this.meetups.forEach(meetup => {
+        const date = new Date(meetup.date);
+        const formattedDate = this.formatDate(date.getFullYear(), date.getMonth(), date.getDate());
+        if(!finalMeetups[formattedDate]) {
+          finalMeetups[formattedDate] = [];
+        }
+        finalMeetups[formattedDate].push(meetup);
+      });
+      return finalMeetups
+    }
+  },
+  methods: {
+    formatDate(year, month, day) {
+      const correctMonth = String(month + 1).padStart(2, '0');
+      const correctDay =  String(day).padStart(2, '0');
+      return `${year}-${correctMonth}-${correctDay}`
+    }
   },
 
   props: {

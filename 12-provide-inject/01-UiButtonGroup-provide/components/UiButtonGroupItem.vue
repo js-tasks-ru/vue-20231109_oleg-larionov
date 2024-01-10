@@ -1,5 +1,13 @@
 <template>
-  <button class="button-group__button button-group__button_active" type="button" aria-selected="false">Button</button>
+  <button
+    @click="uiButtonGroup.updateValue(value)"
+    class="button-group__button" 
+    :class="{ 'button-group__button_active': uiButtonGroup.value.value === value }"
+    type="button" 
+    aria-selected="false"
+  >
+    <slot />
+  </button>
 </template>
 
 <script>
@@ -11,6 +19,7 @@ export default {
       required: true,
     },
   },
+  inject: ['uiButtonGroup']
 };
 </script>
 
